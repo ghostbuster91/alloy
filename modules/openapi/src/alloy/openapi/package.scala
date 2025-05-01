@@ -55,10 +55,12 @@ package object openapi {
 
     case class TraitKey[T <: Trait](cls: Class[T]) {
       def getIdIfApplied(shape: Shape): Option[ShapeId] = {
-        val maybeTrait = shape.getTrait(cls)
-        if (maybeTrait.isPresent()) {
-          Some(maybeTrait.get().toShapeId())
-        } else None
+        val maybeTrait = shape
+          .getAllTraits()
+          .values()
+          .asScala
+          .find(_.getClass().getCanonicalName().equals(cls.getCanonicalName()))
+        maybeTrait.map(_.toShapeId())
       }
     }
     val openapiAwareTraits: Set[TraitKey[_]] = ServiceLoader
