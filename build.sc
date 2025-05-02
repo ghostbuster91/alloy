@@ -139,7 +139,14 @@ trait BaseCrossScalaModule
     with ScalafmtModule
     with TpolecatModule
     with CrossScalaModule
-    with BaseMimaModule
+    with BaseMimaModule {
+
+  override def repositoriesTask: Task[Seq[Repository]] = T.task {
+    val ivy2Local =
+      coursier.MavenRepository("file://" + os.home / ".m2" / "repository")
+    Seq(ivy2Local) ++ super.repositoriesTask()
+  }
+}
 
 object core extends BaseJavaModule {
   def ivyDeps = Agg(
