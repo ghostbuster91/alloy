@@ -8,6 +8,7 @@ import CiReleaseModules.{CiReleaseModule, SonatypeHost, ReleaseModule, Discover}
 import io.github.davidgregory084.TpolecatModule
 import $ivy.`com.github.lolgab::mill-mima::0.1.1`
 import com.github.lolgab.mill.mima._
+import coursier.core.Repository
 
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill._
@@ -104,7 +105,14 @@ trait BasePublishModule extends BaseModule with CiReleaseModule {
   }
 }
 
-trait BaseJavaModule extends JavaModule with BasePublishModule
+trait BaseJavaModule extends JavaModule with BasePublishModule {
+
+  override def repositoriesTask: Task[Seq[Repository]] = T.task {
+    val ivy2Local =
+      coursier.MavenRepository("file://" + os.home / ".m2" / "repository")
+    Seq(ivy2Local) ++ super.repositoriesTask()
+  }
+}
 
 trait BaseScalaNoPublishModule
     extends ScalaModule
@@ -117,7 +125,14 @@ trait BaseMimaModule extends BasePublishModule with Mima {
   def mimaPreviousVersions = Seq("0.2.0")
 }
 
-trait BaseScalaModule extends BaseScalaNoPublishModule with BaseMimaModule
+trait BaseScalaModule extends BaseScalaNoPublishModule with BaseMimaModule {
+
+  override def repositoriesTask: Task[Seq[Repository]] = T.task {
+    val ivy2Local =
+      coursier.MavenRepository("file://" + os.home / ".m2" / "repository")
+    Seq(ivy2Local) ++ super.repositoriesTask()
+  }
+}
 
 trait BaseCrossScalaModule
     extends ScalaModule
@@ -221,6 +236,7 @@ object docs extends BasePublishModule {
 object Deps {
   val smithy = new {
     val smithyVersion = "1.57.1"
+
     val model = ivy"software.amazon.smithy:smithy-model:$smithyVersion"
     val awsTraits = ivy"software.amazon.smithy:smithy-aws-traits:$smithyVersion"
     val awsProtocolTestTraits =
